@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salami Diben Koto? by Sajid</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#1e5631;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    color:#ffd700;
+}
+
+/* Wheel */
+#wheel-container{
+    position:relative;
+    width:300px;
+    height:300px;
+}
+
+#pointer{
+    position:absolute;
+    top:-12px;
+    left:50%;
+    transform:translateX(-50%);
+    border-left:15px solid transparent;
+    border-right:15px solid transparent;
+    border-bottom:30px solid yellow;
+    z-index:10;
+}
+
+#wheel{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:6px solid yellow;
+}
+
+/* Button */
+#spin-btn{
+    margin-top:30px;
+    padding:15px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:30px;
+    background:gold;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#result{
+    margin-top:20px;
+    font-size:20px;
+}
+
+/* Confetti */
+.confetti{
+    position:fixed;
+    width:10px;
+    height:10px;
+    top:-10px;
+    animation:fall 3s linear forwards;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(100vh) rotate(360deg);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Salami Diben Koto? by Sajid</h1>
+
+<div id="wheel-container">
+    <div id="pointer"></div>
+    <canvas id="wheel" width="300" height="300"></canvas>
+</div>
+
+<button id="spin-btn">SPIN NOW!</button>
+<div id="result"></div>
+
+<!-- Sound -->
+<audio id="spinSound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+</audio>
+
+<script>
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+
+const segments = ["2 Tk","5 Tk","10 Tk","50 Tk","100 Tk","Unlimited Dua"];
+const colors = ["#ff5733","#33ff57","#3357ff","#ff33a8","#33fff3","#ffc300"];
+
+const angle = 2*Math.PI/segments.length;
+
+// Draw wheel
+function draw(){
+    for(let i=0;i<segments.length;i++){
+        ctx.beginPath();
+        ctx.moveTo(150,150);
+        ctx.arc(150,150,150,i*angle,(i+1)*angle);
+        ctx.fillStyle=colors[i];
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(150,150);
+        ctx.rotate(i*angle + angle/2);
+        ctx.fillStyle="#000";
+        ctx.font="bold 14px Arial";
+        ctx.textAlign="right";
+        ctx.fillText(segments[i],140,10);
+        ctx.restore();
+    }
+}
+draw();
+
+let spinning=false;
+let currentRotation=0;
+
+document.getElementById("spin-btn").onclick = function(){
+    if(spinning) return;
+    spinning=true;
+
+    document.getElementById("result").innerText="";
+
+    // Sound
+    const sound = document.getElementById("spinSound");
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+
+    const spins = 6;
+    const targetIndex = 5; // Unlimited Dua
+
+    const targetAngle = angle * targetIndex;
+
+    // Fix rotation (no reverse)
+    const extraRotation = Math.PI * 2 * spins;
+    const finalRotation = extraRotation + (Math.PI/2 - targetAngle);
+
+    currentRotation += finalRotation;
+
+    canvas.style.transition = "transform 4s ease-out";
+    canvas.style.transform = `rotate(${currentRotation}rad)`;
+
+    setTimeout(()=>{
+        document.getElementById("result").innerText="🎉 Alhamdulillah! Unlimited Dua!";
+        createConfetti();
+        spinning=false;
+    },4000);
+};
+
+// Confetti
+function createConfetti(){
+    for(let i=0;i<60;i++){
+        let div=document.createElement("div");
+        div.className="confetti";
+        div.style.left=Math.random()*100+"vw";
+        div.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`;
+        div.style.animationDuration=(2+Math.random()*2)+"s";
+        document.body.appendChild(div);
+
+        setTimeout(()=>div.remove(),3000);
+    }
+}
+</script>
+
+</body>
+</html>
